@@ -290,3 +290,32 @@ private Object readResolve() {
   return INSTANCE;
 }
 ```
+
+## Item 4: Enforce noninstantiability with a private constructor
+
+- Utility classes which is just a grouping of static methods and static fields were not designed to be instantiated: an instance would be nonsensical.
+- However, the compiler provides a public, parameterless default constructor which is indistinguisable from any other to a user.
+- Attempting to enforce noninstantiability by making a class abstract does not work.
+  - The class can be subclassed and the subclass instantiated
+  - misleads the user into thinking the class was designed for inheritance
+- a class can be made noninstantiable by including a private constructor
+  - The AssertionError isn’t strictly required, but it provides insurance in case the constructor is accidentally invoked from within the class.
+  - This idiom is mildly counterintuitive, as the constructor is provided expressly so that it cannot be invoked. It is therefore wise to include a comment.
+  - this idiom also prevents the class from being subclassed
+
+```Java
+// Noninstantiable utility class
+public class UtilityClass {
+  // Suppress default constructor for noninstantiability
+  private UtilityClass() {
+    throw new AssertionError();
+  }
+... // Remainder omitted
+}
+```
+
+
+
+
+
+
