@@ -314,8 +314,58 @@ public class UtilityClass {
 }
 ```
 
+## Item 5: Avoid creating unnecessary objects
 
+- reuse a single object instead of creating a new functionally equivalent object
 
+  - faster and stylish
 
+  - An object can always be reused if it is immutable
 
+```Java
+// Don't do this!
+String s = new String("stringtte")
+// can be:
+String s = "stringette"
+```
+
+- Using *static factory methods* can avoid creating unnecessary objects
+  - using *Boolean.valueOf(String)* instead of *Boolean(String)*
+- reuse mutable objects if you know they won't be modified
+
+```Java
+public class Person {
+    private final Date birthDate;
+// Other fields, methods, and constructor omitted
+// DON'T DO THIS! 
+  public boolean isBabyBoomer() {
+    // Unnecessary allocation of expensive object
+    Calendar gmtCal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
+    gmtCal.set(1946, Calendar.JANUARY, 1, 0, 0, 0);
+    Date boomStart = gmtCal.getTime(); gmtCal.set(1965, Calendar.JANUARY, 1, 0, 0, 0);
+    Date boomEnd = gmtCal.getTime(); 
+    return birthDate.compareTo(boomStart) >= 0 && birthDate.compareTo(boomEnd)   <  0; 
+  }
+}
+
+// use sttaic initializer
+class Person { 
+  private final Date birthDate;
+  // Other fields, methods, and constructor omitted
+  /**
+   * The starting and ending dates of the baby boom.    */
+  private static final Date BOOM_START;
+  private static final Date BOOM_END;
+  static { 
+    Calendar gmtCal = Calendar.getInstance(TimeZone.getTimeZone("GMT"));       gmtCal.set(1946, Calendar.JANUARY, 1, 0, 0, 0);     BOOM_START = gmtCal.getTime(); 
+    gmtCal.set(1965, Calendar.JANUARY, 1, 0, 0, 0);     BOOM_END = gmtCal.getTime(); 
+  }
+  public boolean isBabyBoomer() { 
+    return birthDate.compareTo(BOOM_START) >= 0 &&              birthDate.compareTo(BOOM_END)   <  0; 
+  }
+}
+```
+
+-  prefer primitives to boxed primitives, and watch out for unintentional autoboxing
+  - use long replace Long when it is not necessary
 
