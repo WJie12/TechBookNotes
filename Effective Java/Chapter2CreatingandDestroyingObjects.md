@@ -369,3 +369,30 @@ class Person {
 -  prefer primitives to boxed primitives, and watch out for unintentional autoboxing
   - use long replace Long when it is not necessary
 
+## Item 6: Eliminate obsolete object references
+
+- obsolete object can lead to "memory leak" problem in Java
+  - In the case of our Stack class, the reference to an item becomes obsolete as soon as it’s popped off the stack. 
+  - to correct: null out references once they become obsolete.
+  	- if they are subsequently dereferenced by mistake, the program will immediately fail with a *NullPointerException*, rather than quietly doing the wrong thing. It is always beneficial to detect programming errors as quickly as possible. 
+```Java
+public Object pop() {
+  if (size == 0)
+    throw new EmptyStackException();
+  return elements[--size]; 
+}
+
+public Object pop() { 
+  if (size == 0) 
+    throw new EmptyStackException(); 
+  Object result = elements[--size];
+  elements[size] = null; // Eliminate obsolete reference 
+  return result; 
+}
+
+```
+- Nulling  out object references should be the exception rather than the norm. 
+  - The best way to eliminate an obsolete reference is to let the variable that contained the reference fall out of scope. This occurs naturally if you define each variable in the narrowest possible scope (Item 45).
+- whenever a class manages its own memory, the programmer should be alert for memory leaks
+- Another common source of memory leaks is caches. 
+- A third common source of memory leaks is listeners and other callbacks. 
