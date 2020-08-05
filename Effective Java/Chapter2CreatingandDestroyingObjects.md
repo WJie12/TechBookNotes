@@ -396,3 +396,69 @@ public Object pop() {
 - whenever a class manages its own memory, the programmer should be alert for memory leaks
 - Another common source of memory leaks is caches. 
 - A third common source of memory leaks is listeners and other callbacks. 
+
+## Item 7: Avoid finalizers
+
+In summary, don’t use finalizers except as a safety net or to terminate noncritical native resources. In those rare instances where you do use a finalizer, remember to invoke *super.finalize*. If you use a finalizer as a safety net, remember to log the invalid usage from the finalizer. Lastly, if you need to associate a finalizer with a public, nonfinal class, consider using a finalizer guardian, so finalization can take place even if a subclass finalizer fails to invoke *super.finalize*.
+
+- Finalizers are unpredictable, often dangerous, and generally unnecessary
+    - never do anything time-critical in a finalizer
+      - it is a grave error to depend on a finalizer to close files, because open file descriptors are a limited resource. 
+    - never depend on a finalizer to update critical persistent state
+      - Java provides no guarantee that they’ll get executed at all
+    - there is a severe performance penalty for using finalizers.
+- provide an explicit termination method
+  - require clients of the class to invoke this method on each instance when it is no longer needed
+  - keep track of whether it has been terminated:
+    - the explicit termination method must record in a private field that the object is no longer valid
+    - other methods must check this field and throw an *IllegalStateException* if they are called after the object has been terminated. 
+- Explicit termination methods are typically used in combination with the try-finally construct to ensure termination.
+
+```Java
+// try-finally block guarantees execution of termination method 
+Foo foo = new Foo(...); 
+try { 
+  // Do what must be done with foo 
+  ... 
+} finally { 
+  foo.terminate();  // Explicit termination method 
+}
+```
+
+- legitimate uses of finalizer
+  - act as a "safety net" in case the owner of an object forgets to call its explicit termination method
+    - the finalizer should log a warning if it finds that the resource has not been terminated
+    - If you are considering writing such a safety-net finalizer, think long and hard about whether the extra protection is worth the extra cost.
+  - terminate noncritical native resources
+    - assuming the native peer holds no critical resources
+
+- “finalizer chaining” is not performed automatically. 
+  - If a class (other than Object) has a finalizer and a subclass overrides it, the subclass finalizer must invoke the superclass finalizer manually.
+    - finalize the subclass in a try block and invoke the superclass finalizer in the corresponding finally block.
+
+```Java
+// Manual finalizer chaining 
+@Override protected void finalize() throws Throwable {
+  try { 
+    ... // Finalize subclass state 
+  } finally {
+    super.finalize(); 
+  } 
+}
+```
+-  If a subclass implementer overrides a superclass finalizer but forgets to invoke it, the superclass finalizer will never be invoked. Creating an additional object for every object to be finalized can avoid this.
+  -  put the finalizer on an anonymous class (Item 22) whose sole purpose is to finalize its enclosing instance
+  - Note that the public class, Foo, has no finalizer (other than the trivial one it inherits from Object), so it doesn’t matter whether a subclass finalizer calls *super.finalize* or not. This technique should be considered for every nonfinal public class that has a finalizer.
+
+```Java
+// Finalizer Guardian idiom 
+public class Foo { 
+  // Sole purpose of this object is to finalize outer Foo object 
+  private final Object finalizerGuardian = new Object() { 
+    @Override protected void finalize() throws Throwable { 
+    ... // Finalize outer Foo object 
+    } 
+  }; 
+  ... // Remainder omitted 
+}
+```
