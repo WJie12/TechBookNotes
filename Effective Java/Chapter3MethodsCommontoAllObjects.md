@@ -59,3 +59,48 @@
 - Return result. 
   - When you are finished writing the hashCode method, ask yourself whether equal instances have equal hash codes. Write unit tests to verify your intuition! If equal instances have unequal hash codes, figure out why and fix the problem.
 - Do not be tempted to exclude significant parts of an object from the hash code computation to improve performance.
+
+## Item 10: Always override toString
+
+- providing a good *toString* implementation makes your class much more pleasant to use
+
+- When practical, the toString method should return all of the interesting information contained in the object
+
+- Whether or not you decide to specify the format, you should clearly document your intentions
+
+  ```
+  /** * Returns the string representation of this phone number. 
+   * The string consists of fourteen characters whose format 
+   * is "(XXX) YYY-ZZZZ", where XXX is the area code, YYY is 
+   * the prefix, and ZZZZ is the line number.  (Each of the 
+   * capital letters represents a single decimal digit.) 
+   * 
+   * If any of the three parts of this phone number is too small 
+   * to fill up its field, the field is padded with leading zeros. 
+   * For example, if the value of the line number is 123, the last 
+   * four characters of the string representation will be "0123". 
+   * 
+   * Note that there is a single space separating the closing 
+   * parenthesis after the area code from the first digit of the 
+   * prefix. 
+   */ 
+   @Override public String toString() { 
+   	return String.format("(%03d) %03d-%04d", areaCode, prefix, lineNumber); 
+   }
+   
+   
+   /** 
+    * Returns a brief description of this potion. The exact details 
+    * of the representation are unspecified and subject to change, 
+    * but the following may be regarded as typical: 
+    * 
+    * "[Potion #9: type=love, smell=turpentine, look=india ink]" 
+    */ 
+    @Override public String toString() { ... }
+  
+  ```
+
+  
+
+- provide programmatic access to all of the information contained in the value returned by *toString*
+
